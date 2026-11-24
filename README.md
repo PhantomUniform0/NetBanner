@@ -4,7 +4,7 @@ A modern implmentation of the legacy NetBanner classification banner.
 It shows a classification banner across the top of every monitor and can display readiness indicators (CPCON, FPCON,
 and custom items) on the sides.
 
-- **Windows** (MSI) and **Linux** (`.deb` / `.rpm`, GNOME and KDE): see [linux/README.md](linux/README.md)
+- Installers - **Windows** (MSI) and **Linux** (`.deb` / `.rpm`, GNOME and KDE): see [linux/README.md](linux/README.md)
 - Managed by **Group Policy** (new ADMX), with **backward compatibility** for existing legacy NetBanner GPOs
 - A **local config tool** for standalone or non-domain machines
 - An optional **NetBanner server** (Linux) to manage non-domain Windows and Linux machines centrally from a web UI:
