@@ -1,0 +1,8 @@
+{
+  "uuid": "netbanner@netbanner",
+  "name": "NetBanner",
+  "description": "Classification banner at the top of every monitor. Configured in /etc/netbanner/config.json.",
+  "shell-version": ["40", "41", "42", "43", "44"],
+  "session-modes": ["user", "unlock-dialog"],
+  "version": 3
+}

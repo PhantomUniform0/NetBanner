@@ -1,0 +1,86 @@
+# nfpm package definition for NetBanner on Linux (.deb and .rpm). Paths are relative to the staging folder
+# that build-linux.ps1 creates (artifacts/linux/stage); VERSION comes from the environment.
+name: netbanner
+arch: amd64
+platform: linux
+version: ${VERSION}
+release: 1
+section: admin
+priority: optional
+maintainer: NetBanner <root@localhost>
+vendor: NetBanner
+# Files built on Windows have no Unix modes (Go reports 0666 files / 0777 dirs); umask 022 gives 644 / 755.
+umask: 0o022
+description: |-
+  Classification banner for Linux desktops.
+  Shows the system's classification marking at the top of every monitor and reserves the
+  space so windows cannot cover it. GNOME (Shell extension) and KDE Plasma (X11 dock).
+  Configured in /etc/netbanner/config.json.
+
+overrides:
+  deb:
+    depends: [libx11-6, libxrandr2, libxi6, libxcursor1, libice6, libsm6, libfontconfig1, "libssl3 | libssl3t64"]
+    recommends: [dconf-cli]
+  rpm:
+    depends: [libX11, libXrandr, libXi, libXcursor, libICE, libSM, fontconfig, openssl-libs]
+
+contents:
+  # The .NET program (self-contained), plus its command on the PATH. Under /usr/libexec so SELinux labels it bin_t
+  # (/usr/lib would be lib_t: the sync service would then run as init_t, which may not make network connections).
+  - src: ./lib/
+    dst: /usr/libexec/netbanner/
+    type: tree
+  - src: ./bin/netbanner
+    dst: /usr/libexec/netbanner/netbanner
+    file_info: { mode: 0755 }
+  - src: /usr/libexec/netbanner/netbanner
+    dst: /usr/bin/netbanner
+    type: symlink
+
+  # GNOME Shell extension, both flavours; postinstall links the right one into the extensions folder.
+  - src: ./gnome-shell/esm/
+    dst: /usr/share/netbanner/gnome-shell/esm/
+    type: tree
+  - src: ./gnome-shell/legacy/
+    dst: /usr/share/netbanner/gnome-shell/legacy/
+    type: tree
+  # Package-owned (not config files), so removing the package always removes the lock. Sites that want other
+  # extensions add their own /etc/dconf/db/local.d/99-site with enabled-extensions (a later file wins).
+  - src: ./system/dconf-00-netbanner
+    dst: /etc/dconf/db/local.d/00-netbanner
+    file_info: { mode: 0644 }
+  - src: ./system/dconf-lock-netbanner
+    dst: /etc/dconf/db/local.d/locks/netbanner
+    file_info: { mode: 0644 }
+
+  # KDE Plasma / other X11 desktops.
+  - src: ./system/netbanner.service
+    dst: /usr/lib/systemd/user/netbanner.service
+    file_info: { mode: 0644 }
+  - src: ./system/netbanner-autostart.desktop
+    dst: /etc/xdg/autostart/netbanner.desktop
+    file_info: { mode: 0644 }
+
+  # NetBanner server sync (root). Idles unless config.json has "server".
+  - src: ./system/netbanner-sync.service
+    dst: /usr/lib/systemd/system/netbanner-sync.service
+    file_info: { mode: 0644 }
+  - dst: /var/lib/netbanner
+    type: dir
+    file_info: { mode: 0755 }
+
+  # Config folder (the admin creates config.json; without it the banner shows CLASSIFICATION NOT CONFIGURED).
+  - dst: /etc/netbanner
+    type: dir
+    file_info: { mode: 0755 }
+  - src: ./doc/config.example.json
+    dst: /usr/share/doc/netbanner/config.example.json
+    file_info: { mode: 0644 }
+  - src: ./doc/README.md
+    dst: /usr/share/doc/netbanner/README.md
+    file_info: { mode: 0644 }
+
+scripts:
+  postinstall: ./system/postinstall.sh
+  preremove: ./system/preremove.sh
+  postremove: ./system/postremove.sh

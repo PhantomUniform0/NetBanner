@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  NetBanner 3 Group Policy template.
+  Writes to HKLM\Software\Policies\NetBanner. Does not touch the legacy key
+  (HKLM\Software\Policies\Microsoft\NetBanner), which NetBanner 3 still reads at lower precedence.
+  Deliberately not named "NetBanner.admx": that would overwrite the legacy Netbanner.admx in the
+  central store (filenames are case-insensitive).
+-->
+<policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="1.0" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <policyNamespaces>
+    <target prefix="netbanner3" namespace="NetBanner.Policies.NetBanner3" />
+    <using prefix="windows" namespace="Microsoft.Policies.Windows" />
+  </policyNamespaces>
+  <resources minRequiredRevision="1.0" />
+  <categories>
+    <category name="NetBanner3" displayName="$(string.Cat_NetBanner3)" explainText="$(string.Cat_NetBanner3_Help)" />
+  </categories>
+  <policies>
+
+    <policy name="Classification" class="Machine" displayName="$(string.Classification)" explainText="$(string.Classification_Help)" presentation="$(presentation.Classification)" key="Software\Policies\NetBanner">
+      <parentCategory ref="NetBanner3" />
+      <supportedOn ref="windows:SUPPORTED_Windows_10_0" />
+      <elements>
+        <enum id="Classification" valueName="Classification" required="true">
+          <item displayName="$(string.Cls_Unclassified)"><value><string>UNCLASSIFIED</string></value></item>
+          <item displayName="$(string.Cls_Cui)"><value><string>CUI</string></value></item>
+          <item displayName="$(string.Cls_Confidential)"><value><string>CONFIDENTIAL</string></value></item>
+          <item displayName="$(string.Cls_Secret)"><value><string>SECRET</string></value></item>
+          <item displayName="$(string.Cls_TopSecret)"><value><string>TOP_SECRET</string></value></item>
+          <item displayName="$(string.Cls_TopSecretSci)"><value><string>TOP_SECRET_SCI</string></value></item>
+        </enum>
+        <text id="Caveats" valueName="Caveats" maxLength="128" />
+      </elements>
+    </policy>
+
+    <policy name="CustomBanner" class="Machine" displayName="$(string.CustomBanner)" explainText="$(string.CustomBanner_Help)" presentation="$(presentation.CustomBanner)" key="Software\Policies\NetBanner" valueName="CustomEnabled">
+      <parentCategory ref="NetBanner3" />
+      <supportedOn ref="windows:SUPPORTED_Windows_10_0" />
+      <enabledValue><decimal value="1" /></enabledValue>
+      <disabledValue><delete /></disabledValue>
+      <elements>
+        <text id="CustomText" valueName="CustomText" maxLength="128" required="true" />
+        <text id="CustomBackground" valueName="CustomBackground" maxLength="7" />
+        <text id="CustomForeground" valueName="CustomForeground" maxLength="7" />
+      </elements>
+    </policy>
+
+    <policy name="Cpcon" class="Machine" displayName="$(string.Cpcon)" explainText="$(string.Cpcon_Help)" presentation="$(presentation.Cpcon)" key="Software\Policies\NetBanner">
+      <parentCategory ref="NetBanner3" />
+      <supportedOn ref="windows:SUPPORTED_Windows_10_0" />
+      <elements>
+        <enum id="Cpcon" valueName="Cpcon" required="true">
+          <item displayName="$(string.Cpcon_1)"><value><decimal value="1" /></value></item>
+          <item displayName="$(string.Cpcon_2)"><value><decimal value="2" /></value></item>
+          <item displayName="$(string.Cpcon_3)"><value><decimal value="3" /></value></item>
+          <item displayName="$(string.Cpcon_4)"><value><decimal value="4" /></value></item>
+          <item displayName="$(string.Cpcon_5)"><value><decimal value="5" /></value></item>
+        </enum>
+        <enum id="CpconSide" valueName="CpconSide">
+          <item displayName="$(string.Side_Left)"><value><string>Left</string></value></item>
+          <item displayName="$(string.Side_Right)"><value><string>Right</string></value></item>
+        </enum>
+      </elements>
+    </policy>
+
+    <policy name="Fpcon" class="Machine" displayName="$(string.Fpcon)" explainText="$(string.Fpcon_Help)" presentation="$(presentation.Fpcon)" key="Software\Policies\NetBanner">
+      <parentCategory ref="NetBanner3" />
+      <supportedOn ref="windows:SUPPORTED_Windows_10_0" />
+      <elements>
+        <enum id="Fpcon" valueName="Fpcon" required="true">
+          <item displayName="$(string.Fpcon_Normal)"><value><string>NORMAL</string></value></item>
+          <item displayName="$(string.Fpcon_Alpha)"><value><string>ALPHA</string></value></item>
+          <item displayName="$(string.Fpcon_Bravo)"><value><string>BRAVO</string></value></item>
+          <item displayName="$(string.Fpcon_Charlie)"><value><string>CHARLIE</string></value></item>
+          <item displayName="$(string.Fpcon_Delta)"><value><string>DELTA</string></value></item>
+        </enum>
+        <enum id="FpconSide" valueName="FpconSide">
+          <item displayName="$(string.Side_Left)"><value><string>Left</string></value></item>
+          <item displayName="$(string.Side_Right)"><value><string>Right</string></value></item>
+        </enum>
+      </elements>
+    </policy>
+
+    <policy name="LeftItems" class="Machine" displayName="$(string.LeftItems)" explainText="$(string.SideItems_Help)" presentation="$(presentation.LeftItems)" key="Software\Policies\NetBanner\LeftItems">
+      <parentCategory ref="NetBanner3" />
+      <supportedOn ref="windows:SUPPORTED_Windows_10_0" />
+      <elements>
+        <list id="LeftItems" key="Software\Policies\NetBanner\LeftItems" valuePrefix="" />
+      </elements>
+    </policy>
+
+    <policy name="RightItems" class="Machine" displayName="$(string.RightItems)" explainText="$(string.SideItems_Help)" presentation="$(presentation.RightItems)" key="Software\Policies\NetBanner\RightItems">
+      <parentCategory ref="NetBanner3" />
+      <supportedOn ref="windows:SUPPORTED_Windows_10_0" />
+      <elements>
+        <list id="RightItems" key="Software\Policies\NetBanner\RightItems" valuePrefix="" />
+      </elements>
+    </policy>
+
+    <policy name="Appearance" class="Machine" displayName="$(string.Appearance)" explainText="$(string.Appearance_Help)" presentation="$(presentation.Appearance)" key="Software\Policies\NetBanner">
+      <parentCategory ref="NetBanner3" />
+      <supportedOn ref="windows:SUPPORTED_Windows_10_0" />
+      <elements>
+        <decimal id="Height" valueName="Height" minValue="10" maxValue="64" />
+        <decimal id="FontSize" valueName="FontSize" minValue="6" maxValue="48" />
+        <enum id="FullScreenBehavior" valueName="FullScreenBehavior">
+          <item displayName="$(string.FullScreen_StayOnTop)"><value><string>StayOnTop</string></value></item>
+          <item displayName="$(string.FullScreen_Yield)"><value><string>Yield</string></value></item>
+        </enum>
+      </elements>
+    </policy>
+
+  </policies>
+</policyDefinitions>

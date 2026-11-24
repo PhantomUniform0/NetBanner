@@ -1,0 +1,17 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <!--
+    Builds NetBanner-<version>-x64.msi from the published exes.
+    Use build.ps1 at the repo root; it publishes the exes first and then builds this project.
+  -->
+  <PropertyGroup>
+    <OutputName>NetBanner-$(Version)-x64</OutputName>
+    <Platform>x64</Platform>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <PublishDir Condition="'$(PublishDir)' == ''">$(MSBuildThisFileDirectory)..\artifacts\publish\</PublishDir>
+    <!-- PublishDir may come from the command line (immutable), so normalize into a separate property. -->
+    <PayloadDir>$([MSBuild]::EnsureTrailingSlash('$(PublishDir)'))</PayloadDir>
+    <DefineConstants>Version=$(Version);PublishDir=$(PayloadDir);PolicyDir=$(MSBuildThisFileDirectory)..\policy\;AssetsDir=$(MSBuildThisFileDirectory)..\assets\</DefineConstants>
+    <!-- ICE43/ICE57 assume ProgramMenuFolder is per-user; this package is per-machine (all-users Start menu). -->
+    <SuppressIces>ICE43;ICE57;ICE61</SuppressIces>
+  </PropertyGroup>
+</Project>

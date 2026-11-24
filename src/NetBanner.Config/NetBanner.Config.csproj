@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <AssemblyName>NetBannerConfig</AssemblyName>
+    <RootNamespace>NetBanner.Config</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\assets\NetBanner.ico</ApplicationIcon>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>embedded</DebugType>
+    <PublishTrimmed>true</PublishTrimmed>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <ProjectReference Include="..\NetBanner.Core\NetBanner.Core.csproj" />
+    <ProjectReference Include="..\NetBanner.Windows\NetBanner.Windows.csproj" />
+    <ProjectReference Include="..\NetBanner.UI\NetBanner.UI.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Window title bar / taskbar icon (the exe icon above is only used by Explorer). -->
+    <EmbeddedResource Include="..\..\assets\NetBanner.ico" LogicalName="NetBanner.ico" />
+  </ItemGroup>
+</Project>

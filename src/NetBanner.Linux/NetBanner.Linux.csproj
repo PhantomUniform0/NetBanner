@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>netbanner</AssemblyName>
+    <RootNamespace>NetBanner.Linux</RootNamespace>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Installed as a folder under /usr/libexec/netbanner (not single-file: that would unpack native libraries into
+         every user's home directory). Self-contained, so no .NET runtime package is needed on targets. -->
+    <SelfContained>true</SelfContained>
+    <PublishTrimmed>true</PublishTrimmed>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <ProjectReference Include="..\NetBanner.Core\NetBanner.Core.csproj" />
+    <ProjectReference Include="..\NetBanner.UI\NetBanner.UI.csproj" />
+  </ItemGroup>
+</Project>

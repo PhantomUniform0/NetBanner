@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  NetBanner 3 per-machine MSI.
+
+  Installs:
+    %ProgramFiles%\NetBanner\NetBanner.exe            the banner (one per logon session, started by a logon task)
+    %ProgramFiles%\NetBanner\NetBannerConfig.exe      local config tool (Start menu: "NetBanner Configuration")
+    %ProgramFiles%\NetBanner\PolicyDefinitions\       NetBanner3.admx/.adml for admins to copy to the central store
+    %WINDIR%\PolicyDefinitions\                       same files, so local gpedit.msc shows them (INSTALLADMX=1)
+    %ProgramData%\NetBanner\                          config folder: Admins/SYSTEM full control, Users read
+    Event Log source "NetBanner" (Application log)
+    Scheduled task \NetBanner\NetBannerLogon          runs NetBanner.exe at logon for every member of Users
+    Scheduled task \NetBanner\NetBannerServerSync     SYSTEM, from boot: syncs from a NetBanner server if configured
+
+  Public properties:
+    REMOVELEGACYTASK=1 (default)   delete legacy tasks (any task running a NetBanner.exe other than ours,
+                                   e.g. \Microsoft\NetBannerSchTask)
+    STARTBANNER=1 (default)        start the banner right away for users who are already logged on (best effort)
+    INSTALLADMX=1 (default)        also install the policy templates to %WINDIR%\PolicyDefinitions (0 = skip)
+    REMOVELEGACYADMX=1 (default)   delete the legacy Netbanner.admx/.adml from %WINDIR%\PolicyDefinitions (0 = keep)
+    MIGRATELEGACYPOLICY=1 (default) move legacy NetBanner settings in LOCAL Group Policy to the NetBanner 3 policies
+                                   (Registry.pol is backed up first; domain GPOs are never touched, only reported)
+
+  Example: msiexec /i NetBanner-3.2.0-x64.msi /qn REMOVELEGACYTASK=0
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="NetBanner"
+           Manufacturer="NetBanner"
+           Version="$(Version)"
+           UpgradeCode="9167FCD6-B9BC-4EB3-B565-E8073ECD919A"
+           Scope="perMachine"
+           InstallerVersion="500"
+           Compressed="yes">
+
+    <SummaryInformation Description="NetBanner classification banner" />
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="A newer version of NetBanner is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Property Id="ARPCOMMENTS" Value="Classification banner for Windows. Configure with Group Policy (NetBanner 3) or NetBanner Configuration." />
+    <Property Id="ARPNOMODIFY" Value="1" />
+    <Icon Id="NetBannerIcon" SourceFile="$(AssetsDir)NetBanner.ico" />
+    <Property Id="ARPPRODUCTICON" Value="NetBannerIcon" />
+    <Property Id="REMOVELEGACYTASK" Value="1" Secure="yes" />
+    <Property Id="STARTBANNER" Value="1" Secure="yes" />
+    <Property Id="INSTALLADMX" Value="1" Secure="yes" />
+    <Property Id="REMOVELEGACYADMX" Value="1" Secure="yes" />
+    <Property Id="MIGRATELEGACYPOLICY" Value="1" Secure="yes" />
+    <!-- The banner refuses polite close requests by design; StopBanners ends it instead. -->
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable" />
+
+    <Launch Condition="VersionNT64" Message="NetBanner requires 64-bit Windows." />
+    <Launch Condition="Privileged" Message="Installing NetBanner requires administrator rights." />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="NetBanner">
+        <Directory Id="PolicyFolder" Name="PolicyDefinitions">
+          <Directory Id="PolicyEnUsFolder" Name="en-US" />
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="WindowsFolder">
+      <Directory Id="WinPolicyFolder" Name="PolicyDefinitions">
+        <Directory Id="WinPolicyEnUsFolder" Name="en-US" />
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="CommonAppDataFolder">
+      <Directory Id="ConfigFolder" Name="NetBanner" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+    <StandardDirectory Id="System64Folder" />
+
+    <ComponentGroup Id="Product">
+      <Component Directory="INSTALLFOLDER">
+        <File Id="NetBannerExe" Source="$(PublishDir)NetBanner.exe" KeyPath="yes" />
+      </Component>
+
+      <Component Directory="INSTALLFOLDER">
+        <File Id="NetBannerConfigExe" Source="$(PublishDir)NetBannerConfig.exe" KeyPath="yes">
+          <Shortcut Id="ConfigShortcut"
+                    Directory="ProgramMenuFolder"
+                    Name="NetBanner Configuration"
+                    Description="Configure the NetBanner classification banner on this computer"
+                    WorkingDirectory="INSTALLFOLDER"
+                    Advertise="no" />
+        </File>
+      </Component>
+
+      <Component Directory="PolicyFolder">
+        <File Source="$(PolicyDir)NetBanner3.admx" KeyPath="yes" />
+      </Component>
+      <Component Directory="PolicyEnUsFolder">
+        <File Source="$(PolicyDir)en-US\NetBanner3.adml" KeyPath="yes" />
+      </Component>
+
+      <!-- Local copy so gpedit.msc shows "NetBanner 3" right away. Domain GPMC uses the central store instead. -->
+      <Component Directory="WinPolicyFolder" Condition="INSTALLADMX=&quot;1&quot;">
+        <File Id="LocalAdmx" Source="$(PolicyDir)NetBanner3.admx" KeyPath="yes" />
+      </Component>
+      <Component Directory="WinPolicyEnUsFolder" Condition="INSTALLADMX=&quot;1&quot;">
+        <File Id="LocalAdml" Source="$(PolicyDir)en-US\NetBanner3.adml" KeyPath="yes" />
+      </Component>
+
+      <!--
+        Removes the legacy template (Netbanner.admx/.adml) from the local PolicyDefinitions folder so gpedit only shows
+        "NetBanner 3". Legacy policy values already set keep working (NetBanner 3 still reads them). Not restored on uninstall.
+        The domain central store is never touched.
+      -->
+      <Component Id="RemoveLegacyAdmxComponent" Directory="WinPolicyFolder" Guid="0E0C6B53-2B8F-4C0B-9C1D-6E7A35B8C4F1"
+                 Condition="REMOVELEGACYADMX=&quot;1&quot;">
+        <RemoveFile Id="LegacyAdmx" Directory="WinPolicyFolder" Name="Netbanner.admx" On="install" />
+        <RemoveFile Id="LegacyAdml" Directory="WinPolicyEnUsFolder" Name="Netbanner.adml" On="install" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\NetBanner" Name="LegacyAdmxRemoved" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <!-- Config folder. Kept on uninstall if it holds config.json, so settings survive reinstalls. -->
+      <Component Id="ConfigFolderComponent" Directory="ConfigFolder" Guid="879A7FFC-7CB5-4847-8828-D81EC5DCCA51">
+        <CreateFolder>
+          <!-- SYSTEM + Administrators: full control. Users: read. Protected (no inherited ACEs). -->
+          <PermissionEx Sddl="D:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;OICI;FRFX;;;BU)" />
+        </CreateFolder>
+      </Component>
+
+      <!-- Event Log source, using the standard .NET message file present on all supported Windows versions. -->
+      <Component Id="EventSourceComponent" Directory="INSTALLFOLDER" Guid="38510E39-19E9-4798-AAEF-166CE91E90BA">
+        <RegistryValue Root="HKLM"
+                       Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\NetBanner"
+                       Name="EventMessageFile"
+                       Type="expandable"
+                       Value="%SystemRoot%\Microsoft.NET\Framework64\v4.0.30319\EventLogMessages.dll"
+                       KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="Main" Title="NetBanner" Level="1">
+      <ComponentGroupRef Id="Product" />
+    </Feature>
+
+    <!--
+      Custom actions. All run deferred as SYSTEM (Impersonate="no").
+      Running banners are stopped first: they lock NetBanner.exe, and their DACL stops users ending them,
+      but SYSTEM can. Legacy NetBanner.exe processes have the same image name and are stopped too.
+    -->
+    <!-- Working directory must already exist: INSTALLFOLDER doesn't on a first install, which made this silently fail. -->
+    <CustomAction Id="StopBanners"
+                  Directory="System64Folder"
+                  ExeCommand="&quot;[System64Folder]taskkill.exe&quot; /F /IM NetBanner.exe"
+                  Execute="deferred" Impersonate="no" Return="ignore" />
+    <CustomAction Id="RegisterTask" FileRef="NetBannerExe" ExeCommand="--register-task"
+                  Execute="deferred" Impersonate="no" Return="check" />
+    <CustomAction Id="RemoveLegacyTask" FileRef="NetBannerExe" ExeCommand="--remove-legacy-task"
+                  Execute="deferred" Impersonate="no" Return="ignore" />
+    <CustomAction Id="MigrateLegacyPolicy" FileRef="NetBannerExe" ExeCommand="--migrate-legacy-policy"
+                  Execute="deferred" Impersonate="no" Return="ignore" />
+    <CustomAction Id="StartBanner" FileRef="NetBannerExe" ExeCommand="--start-task"
+                  Execute="deferred" Impersonate="no" Return="ignore" />
+    <CustomAction Id="UnregisterTask" FileRef="NetBannerExe" ExeCommand="--unregister-task"
+                  Execute="deferred" Impersonate="no" Return="ignore" />
+    <!-- NetBanner server sync (SYSTEM task from boot; idles unless config.json has "server"). -->
+    <CustomAction Id="RegisterSyncTask" FileRef="NetBannerExe" ExeCommand="--register-sync-task"
+                  Execute="deferred" Impersonate="no" Return="check" />
+    <CustomAction Id="StartSyncTask" FileRef="NetBannerExe" ExeCommand="--start-sync-task"
+                  Execute="deferred" Impersonate="no" Return="ignore" />
+    <CustomAction Id="UnregisterSyncTask" FileRef="NetBannerExe" ExeCommand="--unregister-sync-task"
+                  Execute="deferred" Impersonate="no" Return="ignore" />
+
+    <InstallExecuteSequence>
+      <Custom Action="StopBanners" Before="RemoveFiles" />
+      <Custom Action="UnregisterTask" Before="RemoveFiles"
+              Condition="REMOVE~=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="UnregisterSyncTask" Before="RemoveFiles"
+              Condition="REMOVE~=&quot;ALL&quot; AND NOT UPGRADINGPRODUCTCODE" />
+      <Custom Action="RegisterTask" After="InstallFiles" Condition="NOT REMOVE~=&quot;ALL&quot;" />
+      <Custom Action="RegisterSyncTask" After="RegisterTask" Condition="NOT REMOVE~=&quot;ALL&quot;" />
+      <Custom Action="RemoveLegacyTask" After="RegisterTask"
+              Condition="NOT REMOVE~=&quot;ALL&quot; AND REMOVELEGACYTASK=&quot;1&quot;" />
+      <Custom Action="MigrateLegacyPolicy" After="RemoveLegacyTask"
+              Condition="NOT REMOVE~=&quot;ALL&quot; AND MIGRATELEGACYPOLICY=&quot;1&quot;" />
+      <Custom Action="StartBanner" After="MigrateLegacyPolicy"
+              Condition="NOT REMOVE~=&quot;ALL&quot; AND STARTBANNER=&quot;1&quot;" />
+      <Custom Action="StartSyncTask" After="StartBanner" Condition="NOT REMOVE~=&quot;ALL&quot;" />
+    </InstallExecuteSequence>
+  </Package>
+</Wix>

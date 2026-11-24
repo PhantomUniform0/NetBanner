@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=NetBanner
+Comment=Classification banner
+# Fallback for sessions that don't start graphical-session.target; starting an already running unit does nothing.
+Exec=systemctl --user start netbanner.service
+OnlyShowIn=KDE;
+NoDisplay=true
+X-KDE-autostart-phase=1

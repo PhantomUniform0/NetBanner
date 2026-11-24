@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <AssemblyName>NetBanner</AssemblyName>
+    <RootNamespace>NetBanner.App</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\assets\NetBanner.ico</ApplicationIcon>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+
+    <!-- Publish: one self-contained exe, no .NET runtime needed on targets. -->
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>embedded</DebugType>
+    <PublishTrimmed>true</PublishTrimmed>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <ProjectReference Include="..\NetBanner.Core\NetBanner.Core.csproj" />
+    <ProjectReference Include="..\NetBanner.Windows\NetBanner.Windows.csproj" />
+    <ProjectReference Include="..\NetBanner.UI\NetBanner.UI.csproj" />
+  </ItemGroup>
+</Project>

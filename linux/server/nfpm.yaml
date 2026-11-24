@@ -1,0 +1,47 @@
+# nfpm package definition for the NetBanner server (.deb and .rpm). Paths are relative to the staging folder that
+# build-linux.ps1 creates (artifacts/linux/server-stage); VERSION comes from the environment.
+name: netbanner-server
+arch: amd64
+platform: linux
+version: ${VERSION}
+release: 1
+section: admin
+priority: optional
+maintainer: NetBanner <root@localhost>
+vendor: NetBanner
+# Files built on Windows have no Unix modes (Go reports 0666 files / 0777 dirs); umask 022 gives 644 / 755.
+umask: 0o022
+description: |-
+  Central configuration server for NetBanner.
+  Holds the banner settings for machines Group Policy doesn't reach (a default, groups and
+  per-machine overrides) and serves each machine its signed config. Web UI on port 8080.
+
+overrides:
+  deb:
+    depends: ["libssl3 | libssl3t64"]
+  rpm:
+    depends: [openssl-libs]
+
+contents:
+  # Self-contained .NET service. Under /usr/libexec so SELinux labels it bin_t (systemd then runs it in the normal
+  # service domain; /usr/lib would be lib_t).
+  - src: ./lib/
+    dst: /usr/libexec/netbanner-server/
+    type: tree
+  - src: ./bin/netbanner-server
+    dst: /usr/libexec/netbanner-server/netbanner-server
+    file_info: { mode: 0755 }
+  - src: /usr/libexec/netbanner-server/netbanner-server
+    dst: /usr/bin/netbanner-server
+    type: symlink
+  - src: ./system/netbanner-server.service
+    dst: /usr/lib/systemd/system/netbanner-server.service
+    file_info: { mode: 0644 }
+  - src: ./doc/README.md
+    dst: /usr/share/doc/netbanner-server/README.md
+    file_info: { mode: 0644 }
+
+scripts:
+  preinstall: ./system/preinstall.sh
+  postinstall: ./system/postinstall.sh
+  preremove: ./system/preremove.sh

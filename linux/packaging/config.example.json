@@ -1,0 +1,19 @@
+// NetBanner example config. Copy to /etc/netbanner/config.json (root-owned, mode 644) and edit.
+// Same format as Windows. Comments and trailing commas are allowed. Check it with: netbanner validate
+{
+  // UNCLASSIFIED, CUI, CONFIDENTIAL, SECRET, TOP_SECRET, TOP_SECRET_SCI
+  "classification": "UNCLASSIFIED",
+  "caveats": "",
+
+  // Or replace the marking entirely:
+  // "custom": { "text": "{hostname}", "background": "#000000", "foreground": "#FFFFFF" },
+
+  // Side items. Types: text, cpcon (1-5), fpcon (NORMAL, ALPHA, BRAVO, CHARLIE, DELTA).
+  // Text supports {hostname}, {username}, {domain}, {ip}.
+  "leftItems": [ { "type": "cpcon", "value": 5 } ],
+  "rightItems": [ { "type": "text", "value": "{hostname}" } ],
+
+  // Optional; Linux default is 16 (14 clips Linux fonts).
+  "height": 16,
+  "fontSize": 13
+}

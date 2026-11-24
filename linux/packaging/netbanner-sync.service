@@ -1,0 +1,15 @@
+[Unit]
+Description=NetBanner server sync (fetches this machine's banner config from the NetBanner server)
+Documentation=file:///usr/share/doc/netbanner/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# Runs as root so the verified config and pinned key in /var/lib/netbanner can't be changed by users.
+# Idles when /etc/netbanner/config.json has no "server" set.
+ExecStart=/usr/bin/netbanner server-sync
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

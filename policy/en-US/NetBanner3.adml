@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="1.0" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <displayName>NetBanner 3</displayName>
+  <description>Classification banner settings for NetBanner 3.</description>
+  <resources>
+    <stringTable>
+      <string id="Cat_NetBanner3">NetBanner 3</string>
+      <string id="Cat_NetBanner3_Help">Settings for the NetBanner 3 classification banner.
+
+Precedence (highest first): these policies, then the legacy NetBanner policies (HKLM\Software\Policies\Microsoft\NetBanner), then the local config file (%ProgramData%\NetBanner\config.json), then built-in defaults.
+
+Changes apply live after a Group Policy refresh. No logoff is needed.</string>
+
+      <string id="Classification">Classification</string>
+      <string id="Classification_Help">Sets the classification shown in the center of the banner, with its standard color.
+
+Caveats (optional) are appended after "//".
+
+If neither this policy, the Custom banner policy, a legacy policy nor the local config sets a classification, the banner shows "CLASSIFICATION NOT CONFIGURED".
+
+If the Custom banner policy is enabled, it replaces this policy.</string>
+      <string id="Cls_Unclassified">UNCLASSIFIED (green)</string>
+      <string id="Cls_Cui">CUI (purple)</string>
+      <string id="Cls_Confidential">CONFIDENTIAL (blue)</string>
+      <string id="Cls_Secret">SECRET (red)</string>
+      <string id="Cls_TopSecret">TOP SECRET (orange)</string>
+      <string id="Cls_TopSecretSci">TOP SECRET//SCI (yellow)</string>
+
+      <string id="CustomBanner">Custom banner</string>
+      <string id="CustomBanner_Help">Replaces the center classification marking with your own text and colors. Use it for exercise banners, test systems, and similar.
+
+Colors are hex values such as #FFFFFF (white) or #000000 (black). If a color is left empty or invalid, white background / black text is used.
+
+The text can include these tokens: {hostname}, {username}, {domain}, {ip}.
+
+When enabled, this policy replaces the Classification policy.</string>
+
+      <string id="Cpcon">CPCON (Cyberspace Protection Condition)</string>
+      <string id="Cpcon_Help">Shows the current CPCON level as an indicator on the banner. CPCON replaces the legacy INFOCON setting.
+
+Choose which side of the banner it appears on (default: left). Built-in indicators sit at the outer edge of their side.</string>
+      <string id="Cpcon_1">CPCON 1</string>
+      <string id="Cpcon_2">CPCON 2</string>
+      <string id="Cpcon_3">CPCON 3</string>
+      <string id="Cpcon_4">CPCON 4</string>
+      <string id="Cpcon_5">CPCON 5</string>
+
+      <string id="Fpcon">FPCON (Force Protection Condition)</string>
+      <string id="Fpcon_Help">Shows the current FPCON level as an indicator on the banner.
+
+Choose which side of the banner it appears on (default: right). Built-in indicators sit at the outer edge of their side.</string>
+      <string id="Fpcon_Normal">NORMAL</string>
+      <string id="Fpcon_Alpha">ALPHA</string>
+      <string id="Fpcon_Bravo">BRAVO</string>
+      <string id="Fpcon_Charlie">CHARLIE</string>
+      <string id="Fpcon_Delta">DELTA</string>
+
+      <string id="Side_Left">Left</string>
+      <string id="Side_Right">Right</string>
+
+      <string id="LeftItems">Custom items (left side)</string>
+      <string id="RightItems">Custom items (right side)</string>
+      <string id="SideItems_Help">Adds your own text indicators to this side of the banner, shown in the order listed.
+
+Text can include these tokens: {hostname}, {username}, {domain}, {ip}. Example: "SITE: HQ" or "{hostname}".
+
+If this policy sets any items for a side, the whole side comes from Group Policy, together with any CPCON or FPCON placed on that side. Lower sources (legacy policy, local config) are ignored for that side.</string>
+
+      <string id="Appearance">Appearance</string>
+      <string id="Appearance_Help">Banner height and font size are in device-independent pixels and scale with each monitor's DPI. Defaults: height 14, font size 13.
+
+Full-screen behavior:
+- Stay on top (default): the banner stays visible above full-screen applications.
+- Yield: the banner drops behind a full-screen application (videos, presentations) on its monitor, and returns when that application leaves full screen.</string>
+      <string id="FullScreen_StayOnTop">Stay on top (always visible)</string>
+      <string id="FullScreen_Yield">Yield to full-screen applications</string>
+    </stringTable>
+
+    <presentationTable>
+      <presentation id="Classification">
+        <dropdownList refId="Classification" noSort="true" defaultItem="0">Classification:</dropdownList>
+        <textBox refId="Caveats">
+          <label>Caveats (optional, e.g. NOFORN):</label>
+        </textBox>
+      </presentation>
+
+      <presentation id="CustomBanner">
+        <textBox refId="CustomText">
+          <label>Banner text:</label>
+        </textBox>
+        <textBox refId="CustomBackground">
+          <label>Background color (#RRGGBB):</label>
+          <defaultValue>#FFFFFF</defaultValue>
+        </textBox>
+        <textBox refId="CustomForeground">
+          <label>Text color (#RRGGBB):</label>
+          <defaultValue>#000000</defaultValue>
+        </textBox>
+      </presentation>
+
+      <presentation id="Cpcon">
+        <dropdownList refId="Cpcon" noSort="true" defaultItem="4">CPCON level:</dropdownList>
+        <dropdownList refId="CpconSide" noSort="true" defaultItem="0">Show on side:</dropdownList>
+      </presentation>
+
+      <presentation id="Fpcon">
+        <dropdownList refId="Fpcon" noSort="true" defaultItem="0">FPCON level:</dropdownList>
+        <dropdownList refId="FpconSide" noSort="true" defaultItem="1">Show on side:</dropdownList>
+      </presentation>
+
+      <presentation id="LeftItems">
+        <listBox refId="LeftItems">Items (left to right):</listBox>
+      </presentation>
+
+      <presentation id="RightItems">
+        <listBox refId="RightItems">Items (left to right):</listBox>
+      </presentation>
+
+      <presentation id="Appearance">
+        <decimalTextBox refId="Height" defaultValue="14" spinStep="1">Banner height:</decimalTextBox>
+        <decimalTextBox refId="FontSize" defaultValue="13" spinStep="1">Font size:</decimalTextBox>
+        <dropdownList refId="FullScreenBehavior" noSort="true" defaultItem="0">Full-screen behavior:</dropdownList>
+      </presentation>
+    </presentationTable>
+  </resources>
+</policyDefinitionResources>

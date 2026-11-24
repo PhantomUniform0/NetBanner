@@ -1,0 +1,9 @@
+# NetBanner: turn on the GNOME Shell extension for every user. Owned by the netbanner package (replaced on upgrade,
+# removed with the package); the list is locked (locks/netbanner), so users can't switch the banner off.
+# To allow other extensions, don't edit this file: create /etc/dconf/db/local.d/99-site with
+#   [org/gnome/shell]
+#   enabled-extensions=['netbanner@netbanner', 'other@extension']
+# and run "dconf update" (the later file wins).
+[org/gnome/shell]
+enabled-extensions=['netbanner@netbanner']
+disable-user-extensions=false

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>netbanner-server</AssemblyName>
+    <RootNamespace>NetBanner.Server</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Self-contained per RID at publish (build-server.ps1), so targets need no .NET runtime. Not trimmed:
+         ASP.NET Core's reflection use makes trimming fragile, and size doesn't matter much on a server. -->
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NetBanner.Core\NetBanner.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Web UI, embedded so the server is one folder with no loose web files. Vendored Clarity CSS and fonts: see
+         ui/vendor/README.md. (Not "wwwroot", so ASP.NET's static web assets don't publish the files a second time.) -->
+    <EmbeddedResource Include="ui\index.html" LogicalName="index.html" />
+    <EmbeddedResource Include="ui\vendor\**\*.css;ui\vendor\**\*.woff2" LogicalName="vendor/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

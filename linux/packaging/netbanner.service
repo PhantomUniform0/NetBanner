@@ -1,0 +1,16 @@
+[Unit]
+Description=NetBanner classification banner
+Documentation=file:///usr/share/doc/netbanner/README.md
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+# GNOME shows the banner with its Shell extension; this unit runs the X11 dock banner everywhere else (KDE Plasma).
+ExecCondition=/usr/bin/netbanner should-run
+ExecStart=/usr/bin/netbanner banner
+# Comes back if a user kills it.
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

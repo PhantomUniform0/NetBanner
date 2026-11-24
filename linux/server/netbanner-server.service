@@ -1,0 +1,20 @@
+[Unit]
+Description=NetBanner server (central banner configuration)
+Documentation=file:///usr/share/doc/netbanner-server/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=netbanner-server
+Group=netbanner-server
+Environment=NETBANNER_SERVER_DATA=/var/lib/netbanner-server
+# Port: add e.g. Environment=ASPNETCORE_URLS=http://0.0.0.0:9000 in a drop-in (systemctl edit netbanner-server).
+ExecStart=/usr/libexec/netbanner-server/netbanner-server
+StateDirectory=netbanner-server
+StateDirectoryMode=0700
+Restart=always
+RestartSec=3
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

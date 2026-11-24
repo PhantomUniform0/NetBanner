@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NetBanner Server</title>
+<link rel="stylesheet" href="/vendor/clarity-city/fonts.css">
+<link rel="stylesheet" href="/vendor/clarity/clr-ui.min.css">
+<style>
+/* Small additions on top of Clarity (vendored @clr/ui; see ui/vendor/README.md). */
+[hidden], .hidden { display: none !important; }
+body { font-family: 'Clarity City', 'Avenir Next', sans-serif; }
+.header .branding { display: flex; align-items: center; height: 100%; }
+.header .branding .title { font-weight: 500; line-height: 1; }
+.header-actions { align-items: center; gap: .6rem; padding-right: 1rem; }
+.header-actions .nb-status { color: #fff; opacity: .85; font-size: .65rem; white-space: nowrap; }
+.subnav { padding: 0 1.2rem; display: flex; align-items: center; gap: 1.2rem; font-size: .6rem; }
+/* Signing key as a code chip: Clarity's code colour, set off from the surrounding text. */
+.subnav code { font-family: ui-monospace, Consolas, 'Courier New', monospace; font-size: .6rem;
+  padding: .1rem .4rem; margin-left: .3rem; border-radius: .15rem;
+  background: rgba(128,128,128,.18); border: 1px solid rgba(128,128,128,.35); user-select: all; }
+.clr-vertical-nav { width: 15rem; }
+/* One inset for headings, links and their tags/buttons, so everything lines up. */
+:root { --nb-nav-inset: 1rem; }
+.nb-nav-sep { border-top: 1px solid rgba(128,128,128,.4); margin: .5rem 0 0; }
+.nb-nav-head { display: flex; align-items: center; justify-content: space-between; padding: .6rem var(--nb-nav-inset) .2rem;
+  font-size: .55rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; opacity: .75; }
+.nb-nav-head .btn { margin: 0; padding: 0; min-width: 0; height: auto; line-height: 1.2; }
+.clr-vertical-nav .nav-link { cursor: pointer; gap: .4rem; display: flex; align-items: center;
+  padding-left: var(--nb-nav-inset) !important; padding-right: var(--nb-nav-inset) !important; }
+.clr-vertical-nav .nav-link .nav-text { padding: 0 !important; }
+.clr-vertical-nav .nav-link .label { margin: 0 0 0 auto; }
+.content-area { padding: 1.2rem 1.6rem 2.4rem; }
+.content-area > .card:first-child { margin-top: 0; }
+.nb-titlebar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.nb-titlebar h2 { margin: 0; }
+.nb-preview { overflow: hidden; border-radius: .15rem; outline: 1px solid rgba(128,128,128,.35); }
+.nb-banner { position: relative; display: flex; align-items: center; justify-content: center; white-space: nowrap; overflow: hidden; }
+.nb-banner .center { font-weight: 700; }
+.nb-banner .side { position: absolute; top: 0; bottom: 0; display: flex; }
+.nb-banner .side.left { left: 0; } .nb-banner .side.right { right: 0; }
+.nb-banner .side span { display: flex; align-items: center; padding: 0 10px; font-weight: 600; }
+.nb-item { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; padding: .3rem 0; border-bottom: 1px solid rgba(128,128,128,.2); }
+.nb-item .clr-checkbox-wrapper { margin: 0; }
+input[type=color] { width: 2.2rem; height: 1.2rem; padding: 0; border: 1px solid rgba(128,128,128,.5); background: none; vertical-align: middle; }
+.clr-form-horizontal .clr-form-control { margin-top: .6rem; }
+/* Labels a fixed width next to their controls (Clarity's grid spreads them across wide cards). */
+.clr-form-horizontal .clr-form-control > .clr-control-label { flex: 0 0 10rem; max-width: 10rem; }
+.clr-form-horizontal .clr-form-control > .clr-control-container { flex: 1 1 auto; max-width: none; }
+.clr-input[type=number] { width: 7rem; }
+.clr-select { min-width: 11rem; }
+.nb-subtle { opacity: .75; }
+.modal-body p { margin-top: 0; white-space: pre-line; }
+@media (max-width: 768px) {
+  .content-container { flex-direction: column; }
+  .clr-vertical-nav { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================ login -->
+<div id="login" class="login-wrapper" hidden>
+  <form class="login" id="login-form">
+    <section class="title">
+      <h3 class="welcome">Welcome to</h3>
+      NetBanner Server
+      <h5 class="hint">Central banner configuration</h5>
+    </section>
+    <div class="login-group">
+      <div class="clr-form-control">
+        <label for="pw" class="clr-control-label">Password</label>
+        <div class="clr-control-container">
+          <div class="clr-input-wrapper">
+            <input id="pw" class="clr-input" type="password" autocomplete="current-password" required>
+          </div>
+        </div>
+      </div>
+      <div class="error active" id="login-msg" hidden></div>
+      <button class="btn btn-primary" type="submit">Sign in</button>
+    </div>
+  </form>
+</div>
+
+<!-- ============================================================ app -->
+<div id="app" class="main-container" hidden>
+  <header class="header">
+    <div class="branding"><span class="title">NetBanner Server</span></div>
+    <div class="header-nav"></div>
+    <div class="header-actions">
+      <span class="nb-status" id="status"></span>
+      <button class="btn btn-primary btn-sm" id="save" disabled>Save</button>
+      <button class="btn btn-inverse btn-sm" id="logout">Sign out</button>
+    </div>
+  </header>
+  <nav class="subnav" id="meta"></nav>
+  <div class="content-container">
+    <nav class="clr-vertical-nav">
+      <div class="nav-content" id="nav"></div>
+    </nav>
+    <div class="content-area" id="editor"></div>
+  </div>
+</div>
+
+<!-- ============================================================ dialog -->
+<div class="modal" id="modal" hidden>
+  <div class="modal-dialog modal-sm" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-content">
+      <form id="modal-form">
+        <div class="modal-header"><h3 class="modal-title" id="modal-title"></h3></div>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-footer" id="modal-footer"></div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop" id="modal-backdrop" aria-hidden="true" hidden></div>
+
+<script>
+"use strict";
+let data = null, meta = null, info = null, sel = { kind: "default", name: null }, previewTimer = 0, pollTimer = 0;
+let savedJson = "", deletedLocally = new Set();
+const $ = id => document.getElementById(id);
+
+// Clarity light/dark theme follows the browser.
+const dark = window.matchMedia("(prefers-color-scheme: dark)");
+const applyTheme = () => document.body.setAttribute("cds-theme", dark.matches ? "dark" : "light");
+dark.addEventListener("change", applyTheme);
+applyTheme();
+
+function el(tag, props = {}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k in e) e[k] = v;
+    else e.setAttribute(k, v);
+  }
+  for (const c of children.flat()) if (c != null) e.append(c);
+  return e;
+}
+
+async function api(method, url, body) {
+  const r = await fetch(url, { method, headers: body ? { "Content-Type": "application/json" } : {}, body: body ? JSON.stringify(body) : undefined });
+  if (r.status === 401) { showLogin(); throw new Error("Signed out"); }
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return r.status === 204 ? null : r.json();
+}
+
+// ---------------------------------------------------------------- Clarity form helpers
+let idSeq = 0;
+const nextId = () => "f" + (++idSeq);
+
+/** Horizontal Clarity form row: label, control, optional helper text. */
+function row(label, control, helper) {
+  const id = control.querySelector?.("input,select")?.id || control.id;
+  return el("div", { class: "clr-form-control clr-row" },
+    el("label", { class: "clr-control-label clr-col-12 clr-col-md-3", htmlFor: id || "" }, label),
+    el("div", { class: "clr-control-container clr-col-12 clr-col-md-9" }, control,
+      helper ? el("span", { class: "clr-subtext" }, helper) : null));
+}
+
+function select(options, value, onchange) {
+  const s = el("select", { class: "clr-select", id: nextId(), onchange: e => onchange(e.target.value) },
+    ...options.map(([v, t]) => el("option", { value: v, selected: String(v) === String(value ?? "") }, t)));
+  return el("div", { class: "clr-select-wrapper" }, s);
+}
+
+function input(value, placeholder, oninput, type = "text", extra = {}) {
+  return el("div", { class: "clr-input-wrapper" },
+    el("input", { class: "clr-input", id: nextId(), type, value: value ?? "", placeholder, oninput: e => oninput(e.target.value), ...extra }));
+}
+
+function checkbox(label, checked, onchange) {
+  const id = nextId();
+  return el("div", { class: "clr-checkbox-wrapper" },
+    el("input", { type: "checkbox", class: "clr-checkbox", id, checked, onchange: e => onchange(e.target.checked) }),
+    el("label", { class: "clr-control-label", htmlFor: id }, label));
+}
+
+function card(title, ...body) {
+  return el("div", { class: "card" }, el("div", { class: "card-header" }, title), el("div", { class: "card-block" }, ...body));
+}
+
+function alertBox(kind, lines) {
+  return el("div", { class: `alert alert-${kind} alert-sm`, role: "alert" },
+    el("div", { class: "alert-items" }, ...lines.map(t => el("div", { class: "alert-item static" }, el("div", { class: "alert-text" }, t)))));
+}
+
+// ---------------------------------------------------------------- dialog (Clarity modal)
+// In-page, because the browser's confirm()/prompt() can be blocked for a page, which made buttons silently do nothing.
+// Resolves to the entered text (input dialogs), true (confirm), or null (cancelled).
+let modalResolve = null;
+
+function ask({ title, message = "", input: wantInput = false, placeholder = "", ok = "OK", cancel = "Cancel", danger = false }) {
+  if (modalResolve) modalResolve(null);
+  return new Promise(resolve => {
+    const field = el("input", { class: "clr-input", placeholder, style: "width:100%" });
+    $("modal-title").textContent = title;
+    $("modal-body").replaceChildren(message ? el("p", {}, message) : "",
+      wantInput ? el("div", { class: "clr-input-wrapper", style: "width:100%" }, field) : "");
+    const okBtn = el("button", { class: "btn " + (danger ? "btn-danger" : "btn-primary"), type: "submit" }, ok);
+    $("modal-footer").replaceChildren(
+      cancel ? el("button", { class: "btn btn-outline", type: "button", onclick: () => closeModal(null) }, cancel) : "", okBtn);
+    $("modal-form").onsubmit = e => { e.preventDefault(); closeModal(wantInput ? (field.value.trim() || null) : true); };
+    modalResolve = resolve;
+    $("modal").hidden = false; $("modal-backdrop").hidden = false;
+    (wantInput ? field : okBtn).focus();
+  });
+}
+
+function closeModal(value) {
+  $("modal").hidden = true; $("modal-backdrop").hidden = true;
+  const r = modalResolve; modalResolve = null;
+  if (r) r(value);
+}
+
+document.addEventListener("keydown", e => { if (e.key === "Escape" && modalResolve) closeModal(null); });
+
+// ---------------------------------------------------------------- login / load
+async function start() {
+  info = await (await fetch("/api/info")).json();
+  try {
+    meta = await api("GET", "/api/admin/meta");
+    setData(await api("GET", "/api/admin/data"));
+    showApp();
+    clearInterval(pollTimer);
+    pollTimer = setInterval(poll, 30000);
+  } catch { /* showLogin already called */ }
+}
+
+/** Takes server data as the new saved state. */
+function setData(d) {
+  data = normalize(d);
+  savedJson = JSON.stringify(data);
+  deletedLocally = new Set();
+  refreshDirty();
+}
+
+// Fill in empty parts up front, so opening an item never changes the data (and never looks like an edit).
+function normalize(d) {
+  d.groups = d.groups || {};
+  d.machines = d.machines || {};
+  d.default = d.default || {};
+  for (const m of Object.values(d.machines)) { m.settings = m.settings || {}; m.group = m.group || null; }
+  return d;
+}
+
+/** Every 30 s: picks up machines the server added on its own (and everything else if nothing is being edited). */
+async function poll() {
+  let server;
+  try { server = normalize(await api("GET", "/api/admin/data")); } catch { return; }
+  if (!isDirty()) {
+    const keep = sel;
+    setData(server);
+    sel = exists(keep) ? keep : { kind: "default", name: null };
+    renderNav(); renderEditor(); updateMeta();
+    return;
+  }
+
+  // Unsaved edits: only merge in new machines, into both the edit and the saved baseline (so they don't count as edits).
+  const saved = JSON.parse(savedJson);
+  let added = false;
+  for (const [name, m] of Object.entries(server.machines)) {
+    if (!data.machines[name] && !deletedLocally.has(name)) { data.machines[name] = m; added = true; }
+    if (!saved.machines[name]) saved.machines[name] = m;
+  }
+  savedJson = JSON.stringify(saved);
+  if (added) renderNav();
+  refreshDirty();
+}
+
+const exists = s => s.kind === "default" || (s.kind === "group" ? !!data.groups[s.name] : !!data.machines[s.name]);
+
+function showLogin() {
+  clearInterval(pollTimer);
+  $("app").hidden = true;
+  $("login").hidden = false;
+  const msg = info && !info.hasAdminPassword ? "No admin password is set. On the server run: netbanner-server set-password" : "";
+  $("login-msg").textContent = msg;
+  $("login-msg").hidden = !msg;
+  $("pw").focus();
+}
+
+$("login-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const r = await fetch("/api/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: $("pw").value }) });
+  if (!r.ok) { $("login-msg").textContent = "Wrong password."; $("login-msg").hidden = false; return; }
+  $("pw").value = "";
+  $("login").hidden = true;
+  start();
+});
+
+$("logout").addEventListener("click", async () => {
+  if (isDirty() && !await ask({ title: "Sign out", message: "You have unsaved changes. Discard them?", ok: "Discard", danger: true })) return;
+  await fetch("/api/logout", { method: "POST" });
+  savedJson = JSON.stringify(data);
+  showLogin();
+});
+
+function showApp() {
+  $("login").hidden = true;
+  $("app").hidden = false;
+  updateMeta();
+  renderNav();
+  renderEditor();
+}
+
+function updateMeta() {
+  $("meta").replaceChildren(
+    el("span", {}, `Version ${info.version}`),
+    el("span", {}, "Signing key ", el("code", { class: "clr-code" }, info.fingerprint)),
+    el("span", {}, `Serial ${data.serial}`));
+}
+
+const isDirty = () => data !== null && JSON.stringify(data) !== savedJson;
+
+function refreshDirty() {
+  const d = isDirty();
+  $("save").disabled = !d;
+  $("status").textContent = d ? "Unsaved changes" : "";
+}
+
+window.addEventListener("beforeunload", e => { if (isDirty()) { e.preventDefault(); e.returnValue = ""; } });
+
+$("save").addEventListener("click", async () => {
+  try {
+    // The server refuses invalid data (400 with the list of problems); show them and keep the edits.
+    const res = await fetch("/api/admin/data", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+    if (res.status === 401) { showLogin(); return; }
+    if (res.status === 400) {
+      const r = await res.json();
+      $("status").textContent = "Not saved";
+      await ask({ title: "Not saved: fix these first", cancel: null,
+        message: r.warnings.map(w => "• " + w.replace(/^machine /, "Machine ").replace(/^group /, "Group ").replace(/^default:/, "Default:")).join("\n") });
+      return;
+    }
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    setData(await api("GET", "/api/admin/data"));
+    if (!exists(sel)) sel = { kind: "default", name: null };
+    updateMeta(); renderNav(); renderEditor();
+    $("status").textContent = "Saved. Clients pick it up within a minute.";
+  } catch (err) { $("status").textContent = "Save failed: " + err.message; }
+});
+
+// ---------------------------------------------------------------- navigation
+function renderNav() {
+  const link = (kind, name, text, tag) => el("a", {
+    class: "nav-link" + (sel.kind === kind && sel.name === name ? " active" : ""), href: "#",
+    onclick: e => { e.preventDefault(); sel = { kind, name }; renderNav(); renderEditor(); }
+  }, el("span", { class: "nav-text" }, text), tag ? el("span", { class: "label label-" + (tag === "no group" ? "gray" : "blue") }, tag) : null);
+
+  const head = (text, onAdd) => el("div", { class: "nb-nav-head" }, text,
+    el("button", { class: "btn btn-link btn-sm", type: "button", onclick: onAdd }, "+ Add"));
+
+  $("nav").replaceChildren(
+    link("default", null, "Default", null),
+    el("div", { class: "nb-nav-sep" }),
+    head("Groups", addGroup),
+    ...Object.keys(data.groups).sort().map(g => link("group", g, g, null)),
+    el("div", { class: "nb-nav-sep" }),
+    head("Machines", addMachineDialog),
+    ...Object.keys(data.machines).sort().map(m => link("machine", m, m, data.machines[m].group || "no group")));
+}
+
+function addMachine(name) {
+  data.machines[name] = { group: null, settings: {} };
+  deletedLocally.delete(name);
+  sel = { kind: "machine", name }; refreshDirty(); renderNav(); renderEditor();
+}
+
+async function addGroup() {
+  const name = await ask({ title: "Add group", input: true, placeholder: "Group name", ok: "Add" });
+  if (!name) return;
+  if (Object.keys(data.groups).some(g => g.toLowerCase() === name.toLowerCase())) {
+    await ask({ title: "Add group", message: `A group named "${name}" already exists.`, cancel: null }); return;
+  }
+  data.groups[name] = {};
+  sel = { kind: "group", name }; refreshDirty(); renderNav(); renderEditor();
+}
+
+async function addMachineDialog() {
+  const raw = await ask({ title: "Add machine", input: true, ok: "Add", placeholder: "Hostname, e.g. debian13-testing",
+    message: "Machines are also added automatically the first time they contact this server." });
+  const name = (raw || "").split(".")[0].toLowerCase();
+  if (!name) return;
+  if (data.machines[name]) { await ask({ title: "Add machine", message: `"${name}" is already listed.`, cancel: null }); return; }
+  addMachine(name);
+}
+
+// ---------------------------------------------------------------- editor
+function currentSettings() {
+  if (sel.kind === "default") return data.default;
+  if (sel.kind === "group") return data.groups[sel.name];
+  return data.machines[sel.name].settings;
+}
+
+function changed() { refreshDirty(); schedulePreview(); }
+
+function renderEditor() {
+  const s = currentSettings();
+  const title = sel.kind === "default" ? "Default" : sel.kind === "group" ? `Group: ${sel.name}` : `Machine: ${sel.name}`;
+  const explain = sel.kind === "default"
+    ? "Applies to every machine, below its group and its own settings."
+    : sel.kind === "group" ? "Applies to machines in this group, above the default. Leave a field empty to use the default."
+    : "Settings here win over the machine's group and the default. Leave a field empty to inherit.";
+
+  const titlebar = el("div", { class: "nb-titlebar" }, el("h2", {}, title),
+    sel.kind !== "default" ? el("button", { class: "btn btn-danger-outline btn-sm", type: "button", onclick: removeSelected }, "Delete") : null);
+
+  const intro = el("p", { class: "nb-subtle" }, explain);
+  const groupRow = sel.kind === "machine" ? el("form", { class: "clr-form clr-form-horizontal", onsubmit: e => e.preventDefault() }, machineRow()) : null;
+
+  const previewCard = card("Preview",
+    el("div", { class: "nb-preview", id: "preview" }),
+    el("p", { class: "p7 nb-subtle", id: "preview-from" }),
+    el("div", { id: "warnings" }));
+
+  $("editor").replaceChildren(...[titlebar, intro, groupRow, previewCard, markingCard(s),
+    itemsCard(s, "leftItems", "Left side items"), itemsCard(s, "rightItems", "Right side items"), appearanceCard(s)].filter(Boolean));
+  schedulePreview(0);
+}
+
+function machineRow() {
+  const m = data.machines[sel.name];
+  const current = Object.keys(data.groups).find(g => g.toLowerCase() === (m.group || "").toLowerCase()) || "";
+  return row("Group", select([["", "(no group)"], ...Object.keys(data.groups).sort().map(g => [g, g])], current,
+    v => { m.group = v || null; changed(); renderNav(); }));
+}
+
+async function removeSelected() {
+  const note = sel.kind === "machine"
+    ? " If it still runs NetBanner and points at this server, it is added back automatically (with no group) the next time it checks in."
+    : " Machines in this group are moved to no group.";
+  if (!await ask({ title: `Delete ${sel.kind} "${sel.name}"?`, message: "This takes effect when you save." + note, ok: "Delete", danger: true })) return;
+  if (sel.kind === "group") {
+    delete data.groups[sel.name];
+    for (const m of Object.values(data.machines)) if ((m.group || "").toLowerCase() === sel.name.toLowerCase()) m.group = null;
+  } else {
+    delete data.machines[sel.name];
+    deletedLocally.add(sel.name);
+  }
+  sel = { kind: "default", name: null }; refreshDirty(); renderNav(); renderEditor();
+}
+
+const form = (...rows) => el("form", { class: "clr-form clr-form-horizontal", onsubmit: e => e.preventDefault() }, ...rows);
+
+function markingCard(s) {
+  const mode = s.custom ? "custom" : s.classification ? "classification" : "";
+  const rows = [row("Center shows", select([["", "Not set (inherit)"], ["classification", "Classification"], ["custom", "Custom banner"]], mode, v => {
+    delete s.classification; delete s.caveats; delete s.custom;
+    if (v === "classification") s.classification = meta.markings.find(m => m.id !== "NOT_CONFIGURED").id;
+    if (v === "custom") s.custom = { text: "", background: "#FFFFFF", foreground: "#000000" };
+    changed(); renderEditor();
+  }))];
+
+  if (mode === "classification") {
+    rows.push(
+      row("Classification", select(meta.markings.filter(m => m.id !== "NOT_CONFIGURED").map(m => [m.id, m.text]), s.classification,
+        v => { s.classification = v; changed(); })),
+      row("Caveats", input(s.caveats, "e.g. NOFORN", v => { v ? s.caveats = v : delete s.caveats; changed(); }), "Shown after // (optional)."));
+  } else if (mode === "custom") {
+    const c = s.custom;
+    const color = (prop, fallback) => el("input", { type: "color", value: c[prop] || fallback, oninput: e => { c[prop] = e.target.value.toUpperCase(); changed(); } });
+    rows.push(
+      row("Text", input(c.text, "Banner text", v => { c.text = v; changed(); }), "Supports {hostname}, {username}, {domain} and {ip}."),
+      row("Background", color("background", "#FFFFFF")),
+      row("Text color", color("foreground", "#000000")));
+  }
+
+  return card("Marking", form(...rows));
+}
+
+function itemsCard(s, key, title) {
+  const isSet = Array.isArray(s[key]);
+  const body = [checkbox("Set here", isSet, on => { if (on) s[key] = []; else delete s[key]; changed(); renderEditor(); }),
+    isSet ? null : el("span", { class: "clr-subtext" }, "Inherited from the group or default.")].filter(Boolean);
+
+  if (isSet) {
+    s[key].forEach((item, i) => body.push(itemRow(s[key], item, i)));
+    body.push(el("button", { class: "btn btn-outline btn-sm", type: "button", style: "margin-top:.6rem",
+      onclick: () => { s[key].push({ type: "text", value: "" }); changed(); renderEditor(); } }, "+ Add item"));
+  }
+
+  return card(title, ...body);
+}
+
+function itemRow(items, item, i) {
+  const type = (item.type || "text").toLowerCase();
+  let value;
+  if (type === "cpcon") value = select([1, 2, 3, 4, 5].map(n => [n, `CPCON ${n}`]), Number(item.value), v => { item.value = Number(v); changed(); });
+  else if (type === "fpcon") value = select(meta.fpconLevels.map(l => [l, `FPCON ${l}`]), String(item.value).toUpperCase(), v => { item.value = v; changed(); });
+  else value = input(item.value, "Text, e.g. {hostname}", v => { item.value = v; changed(); });
+
+  const colorPick = (prop, fallback, label) => el("span", { style: "display:inline-flex;align-items:center;gap:.3rem" },
+    checkbox(label, !!item[prop], on => { on ? item[prop] = fallback : delete item[prop]; changed(); renderEditor(); }),
+    item[prop] ? el("input", { type: "color", value: item[prop], oninput: e => { item[prop] = e.target.value.toUpperCase(); changed(); } }) : null);
+
+  return el("div", { class: "nb-item" },
+    select([["text", "Text"], ["cpcon", "CPCON"], ["fpcon", "FPCON"]], type, v => {
+      item.type = v; item.value = v === "cpcon" ? 5 : v === "fpcon" ? "NORMAL" : "";
+      changed(); renderEditor();
+    }),
+    value, colorPick("background", "#FFFFFF", "Background"), colorPick("foreground", "#000000", "Text color"),
+    el("button", { class: "btn btn-link btn-sm", type: "button", style: "margin-left:auto",
+      onclick: () => { items.splice(i, 1); changed(); renderEditor(); } }, "Remove"));
+}
+
+function appearanceCard(s) {
+  const num = (key, min, max, step) => input(s[key], "Inherit",
+    v => { v === "" ? delete s[key] : s[key] = Number(v); changed(); }, "number", { min, max, step });
+  return card("Appearance", form(
+    row("Height (px)", num("height", meta.minHeight, meta.maxHeight, 1)),
+    row("Font size", num("fontSize", meta.minFontSize, meta.maxFontSize, 0.5)),
+    row("Full screen", select([["", "Inherit"], ["StayOnTop", "Stay on top"], ["Yield", "Yield to full-screen apps"]], s.fullScreenBehavior,
+      v => { v ? s.fullScreenBehavior = v : delete s.fullScreenBehavior; changed(); }))));
+}
+
+// ---------------------------------------------------------------- preview
+function schedulePreview(delay = 250) {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(updatePreview, delay);
+}
+
+async function updatePreview() {
+  let p;
+  try { p = await api("POST", "/api/admin/preview", { data, kind: sel.kind, name: sel.name }); } catch { return; }
+  const side = (items, cls) => el("div", { class: "side " + cls }, ...items.map(i => el("span", {
+    style: `${i.background ? "background:" + i.background + ";" : ""}color:${i.foreground || p.foreground};font-size:${p.fontSize}px` }, i.text)));
+  const banner = el("div", { class: "nb-banner", style: `background:${p.background};color:${p.foreground};height:${Math.max(p.height, 14)}px` },
+    side(p.left, "left"), el("span", { class: "center", style: `font-size:${p.fontSize}px` }, p.text), side(p.right, "right"));
+  $("preview")?.replaceChildren(banner);
+  if ($("preview-from")) $("preview-from").textContent = `Marking from: ${p.markingFrom}`;
+  $("warnings")?.replaceChildren(p.warnings.length ? alertBox("warning", p.warnings) : "");
+}
+
+start().then(() => { if (!data) showLogin(); });
+</script>
+</body>
+</html>
