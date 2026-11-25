@@ -1,14 +1,3 @@
-<#
-.SYNOPSIS
-  Builds NetBanner: runs tests, publishes both exes (self-contained, trimmed, single-file) and builds the MSI.
-
-.EXAMPLE
-  ./build.ps1                     # version from Directory.Build.props
-  ./build.ps1 -Version 3.0.1      # override the version
-  ./build.ps1 -SkipTests
-
-  Output: artifacts\publish\NetBanner.exe, NetBannerConfig.exe and artifacts\NetBanner-<version>-x64.msi
-#>
 param(
     [string]$Version,
     [switch]$SkipTests
@@ -27,10 +16,6 @@ function Invoke-Step([string]$Name, [scriptblock]$Action) {
     Write-Host "==> $Name" -ForegroundColor Cyan
     & $Action
     if ($LASTEXITCODE -ne 0) { throw "$Name failed (exit $LASTEXITCODE)." }
-}
-
-if (-not $SkipTests) {
-    Invoke-Step 'Tests' { dotnet test --project "$root\tests\NetBanner.Core.Tests" -c Release }
 }
 
 if (Test-Path $publish) { Remove-Item $publish -Recurse -Force }

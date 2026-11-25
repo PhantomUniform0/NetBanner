@@ -27,7 +27,7 @@ public static class MarkingCatalog
         new(Confidential, "CONFIDENTIAL", "#0033A0", "#000000"),
         new(Secret, "SECRET", "#C8102E", "#000000"),
         new(TopSecret, "TOP SECRET", "#FF8C00", "#000000"),
-        new(TopSecretSci, "TOP SECRET//SCI", "#FCE83A", "#000000"),
+        new(TopSecretSci, "SCI", "#FCE83A", "#000000"),
     ];
 
     private static readonly Dictionary<string, Marking> ById = BuildLookup();
@@ -41,11 +41,11 @@ public static class MarkingCatalog
         d["S"] = d[Secret];
         d["TS"] = d[TopSecret];
         d["TS_SCI"] = d[TopSecretSci];
+        d["SCI"] = d[TopSecretSci];
         d[NotConfiguredId] = NotConfigured;
         return d;
     }
 
-    /// <summary>"TOP SECRET//SCI", "top-secret sci", "TS/SCI" all become e.g. TOP_SECRET_SCI or TS_SCI.</summary>
     private static string Canonical(string id)
     {
         var chars = id.Trim().ToUpperInvariant().Select(c => char.IsLetterOrDigit(c) ? c : '_').ToArray();

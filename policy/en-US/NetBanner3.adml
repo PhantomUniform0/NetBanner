@@ -24,7 +24,7 @@ If the Custom banner policy is enabled, it replaces this policy.</string>
       <string id="Cls_Confidential">CONFIDENTIAL (blue)</string>
       <string id="Cls_Secret">SECRET (red)</string>
       <string id="Cls_TopSecret">TOP SECRET (orange)</string>
-      <string id="Cls_TopSecretSci">TOP SECRET//SCI (yellow)</string>
+      <string id="Cls_TopSecretSci">SCI (yellow)</string>
 
       <string id="CustomBanner">Custom banner</string>
       <string id="CustomBanner_Help">Replaces the center classification marking with your own text and colors. Use it for exercise banners, test systems, and similar.

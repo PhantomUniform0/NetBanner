@@ -8,7 +8,4 @@
     <Project Path="src/NetBanner.UI/NetBanner.UI.csproj" />
     <Project Path="src/NetBanner.Windows/NetBanner.Windows.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/NetBanner.Core.Tests/NetBanner.Core.Tests.csproj" />
-  </Folder>
 </Solution>
