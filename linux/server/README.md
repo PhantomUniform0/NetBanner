@@ -8,8 +8,8 @@ The server is Linux only (Debian 12/13, Ubuntu 24.04/26.04, Rocky 9/10, x86_64).
 ## Install
 
 ```sh
-sudo apt install ./netbanner-server_3.2.0-1_amd64.deb      # Debian / Ubuntu
-sudo dnf install ./netbanner-server-3.2.0-1.x86_64.rpm     # Rocky
+sudo apt install ./netbanner-server_3.2.1-1_amd64.deb      # Debian / Ubuntu
+sudo dnf install ./netbanner-server-3.2.1-1.x86_64.rpm     # Rocky
 sudo -u netbanner-server netbanner-server set-password     # web UI admin password (8+ characters)
 ```
 

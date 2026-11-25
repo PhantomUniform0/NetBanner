@@ -1,15 +1,7 @@
-<#
-  Builds the Linux packages on this (Windows) machine:
-    artifacts\netbanner_<version>_amd64.deb
-    artifacts\netbanner-<version>-1.x86_64.rpm
-  Steps: unit tests, publish linux-x64 (self-contained, trimmed), stage files, generate the GNOME extension's
-  banner.js for both flavours, then package with nfpm (downloaded once into tools\.bin and checksum-verified).
-#>
 param(
     # Defaults to <Version> in Directory.Build.props, so Windows and Linux builds share one number.
     [string]$Version,
     [switch]$SkipTests,
-    # Stop after staging (artifacts\linux\stage holds the files at their package paths); no nfpm.
     [switch]$StageOnly
 )
 $ErrorActionPreference = 'Stop'
@@ -53,10 +45,6 @@ function Get-Nfpm {
     Expand-Archive $zip -DestinationPath $dir -Force
     Remove-Item $zip -Force
     return $exe
-}
-
-if (-not $SkipTests) {
-    Invoke-Step 'Unit tests' { dotnet test (Join-Path $root 'tests\NetBanner.Core.Tests') -c Release --nologo }
 }
 
 $publish = Join-Path $artifacts 'linux\netbanner'

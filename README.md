@@ -11,16 +11,16 @@ and custom items) on the sides.
   see [linux/server/README.md](linux/server/README.md)
 - .NET 10
 
-**Status:** 3.2.0: Windows and Linux released.
+**Status:** 3.2.1: Minor fix for a mislabeled classification.
 
 ## Building
 
 Requires the .NET 10 SDK. Packages come from nuget.org (see `nuget.config`).
 
 ```powershell
-./build.ps1        # tests, publishes NetBanner.exe + NetBannerConfig.exe, builds artifacts\NetBanner-<version>-x64.msi
-./build.ps1 -Version X.X.X -SkipTests
-./build-linux.ps1  # tests; Linux client and NetBanner server, each as .deb and .rpm, in artifacts\
+./build.ps1
+./build.ps1 -Version X.X.X
+./build-linux.ps1 
 ```
 
 The version comes from `<Version>` in `Directory.Build.props`. `build-linux.ps1` downloads a pinned nfpm release into `tools\.bin`.
@@ -28,9 +28,9 @@ The version comes from `<Version>` in `Directory.Build.props`. `build-linux.ps1`
 ## Installing
 
 ```powershell
-msiexec /i NetBanner-3.2.0-x64.msi            # interactive
-msiexec /i NetBanner-3.2.0-x64.msi /qn        # silent (SCCM / Intune / GPO software install)
-msiexec /i NetBanner-3.2.0-x64.msi /qn REMOVELEGACYTASK=0 STARTBANNER=0
+msiexec /i NetBanner-3.2.1-x64.msi            # interactive
+msiexec /i NetBanner-3.2.1-x64.msi /qn        # silent (SCCM / Intune / GPO software install)
+msiexec /i NetBanner-3.2.1-x64.msi /qn REMOVELEGACYTASK=0 STARTBANNER=0
 ```
 
 - Installs to `%ProgramFiles%\NetBanner` and creates the logon task `\NetBanner\NetBannerLogon`, which runs the banner for
@@ -57,7 +57,7 @@ Sources, highest precedence first:
 
 ```jsonc
 {
-  "classification": "SECRET",            // UNCLASSIFIED, CUI, CONFIDENTIAL, SECRET, TOP SECRET, TOP SECRET//SCI
+  "classification": "SECRET", // UNCLASSIFIED, CUI, CONFIDENTIAL, SECRET, TOP SECRET, SCI
   "caveats": "NOFORN",
   "leftItems":  [ { "type": "Cpcon", "value": 4 }, { "type": "Text", "value": "{hostname}" } ],
   "rightItems": [ { "type": "Text", "value": "IP {ip}", "background": "#000000", "foreground": "#FFFF00" },

@@ -21,7 +21,7 @@
     MIGRATELEGACYPOLICY=1 (default) move legacy NetBanner settings in LOCAL Group Policy to the NetBanner 3 policies
                                    (Registry.pol is backed up first; domain GPOs are never touched, only reported)
 
-  Example: msiexec /i NetBanner-3.2.0-x64.msi /qn REMOVELEGACYTASK=0
+  Example: msiexec /i NetBanner-3.2.1-x64.msi /qn REMOVELEGACYTASK=0
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package Name="NetBanner"

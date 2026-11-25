@@ -8,8 +8,8 @@ Supported: Debian 12/13, Ubuntu 24.04/26.04, Rocky Linux 9/10, x86_64, with GNOM
 ## Install
 
 ```sh
-sudo apt install ./netbanner_3.2.0-1_amd64.deb      # Debian / Ubuntu
-sudo dnf install ./netbanner-3.2.0-1.x86_64.rpm     # Rocky
+sudo apt install ./netbanner_3.2.1-1_amd64.deb      # Debian / Ubuntu
+sudo dnf install ./netbanner-3.2.1-1.x86_64.rpm     # Rocky
 ```
 
 On KDE the banner appears right away for users who are logged on.
